@@ -1,0 +1,35 @@
+<launch>
+
+    <node name="multitag_positioning" pkg="pozyx_ros" type="multitag_positioning.py" output="screen">
+        <!-- POZYX_POS_ALG_UWB_ONLY = 0   POZYX_POS_ALG_TRACKING = 4-->
+    	<param name="algorithm" value="4" />
+        <!-- POZYX_3D = 3    POZYX_2D = 2    POZYX_2_5D = 1 -->
+    	<param name="dimension" value="3" />
+        <!-- Height of the tag, required in 2.5D positioning -->
+    	<param name="height" value="1000" />
+
+        <!-- filter type FILTER_TYPE_FIR = 1, FILTER_TYPE_MOVINGAVERAGE = 3, FILTER_TYPE_MOVINGMEDIAN = 4, FILTER_TYPE_NONE = 0 -->
+        <param name="filter_type" value="0" />
+        <param name="filter_strength" value="0" />
+
+        <!-- POZYX_RANGE_PROTOCOL_PRECISION = 0, POZYX_RANGE_PROTOCOL_FAST = 1, POZYX_RANGE_PROTOCOL_TEST = 0x02 -->
+        <param name="ranging_protocol" value="1" />
+
+    	<param name="frequency" value="20" />
+
+        <param name="number_of_anchors" value="5" />
+
+		<param name="anchor0_id" value="0x6e3c" />
+		<param name="anchor1_id" value="0x6e2e" />
+		<param name="anchor2_id" value="0x6e7a" />
+		<param name="anchor3_id" value="0x6e2f" />
+        <param name="anchor4_id" value="0x6e1f" />
+
+    	<param name="anchor0_coordinates" value="0, 0, 1160" /><!--"0, 0, 1500" />-->
+    	<param name="anchor1_coordinates" value="0, -1980, 1990" /><!--"4150, 0, 1500" />-->
+    	<param name="anchor2_coordinates" value="1170, 670, 650" /><!--"-400, 2300, 530" />-->
+    	<param name="anchor3_coordinates" value="2450, -1600, 1520" /><!--"3190, 2500, 1700" />-->
+        <param name="anchor4_coordinates" value="1400, -2680, 100" /><!--"3190, 2500, 1700" />-->
+    </node>
+
+</launch>
