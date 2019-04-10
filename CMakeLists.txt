@@ -13,7 +13,7 @@ add_definitions(-std=c++11)
 find_package(cmake_modules REQUIRED)
 
 catkin_package(
-   INCLUDE_DIRS include
+   INCLUDE_DIRS
    CATKIN_DEPENDS roscpp rospy roslib rospack
 )
 
