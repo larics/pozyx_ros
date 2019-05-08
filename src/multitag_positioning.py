@@ -70,9 +70,9 @@ class MultitagPositioning(object):
 
             pwc.pose.covariance = cov_row1 + cov_row2 + cov_row3 + cov_row4 + cov_row5 + cov_row6'''
 
-            pwc.transform.translation.x = position.z * 0.001
-            pwc.transform.translation.y = position.x * 0.001
-            pwc.transform.translation.z = position.y * 0.001
+            pwc.transform.translation.x = position.x * 0.001
+            pwc.transform.translation.y = position.y * 0.001
+            pwc.transform.translation.z = position.z * 0.001
 
             self.pub_position.publish(pwc)
 
