@@ -26,12 +26,12 @@
         <param name="anchor4_id" value="0x6e3f" />
         <param name="anchor5_id" value="0x6e1f" />
 
-        <param name="anchor0_coordinates" value="1619, 1503, 2859" /><!--"-1503, 2859, 1619" />-->
-        <param name="anchor1_coordinates" value="3716, 687, 1725" /><!--"-687, 1725, 3716" />-->
-        <param name="anchor2_coordinates" value="3636, -1486, 861" /><!--"1486, 861, 3636" />-->
-        <param name="anchor3_coordinates" value="762, -1990, 1760" /><!--"1990, 1760, 762" />-->
-        <param name="anchor4_coordinates" value="-1735, -2009, 1231" /><!--"2009, 1231, -1735" />-->
-        <param name="anchor5_coordinates" value="-1828, 1547, 2212" /><!--"-1547, 2212. -1828" />-->
+        <param name="anchor0_coordinates" value="-1503, 2859, 1619" /><!--"-1503, 2859, 1619" />-->
+        <param name="anchor1_coordinates" value="-687, 1725, 3716" /><!--"-687, 1725, 3716" />-->
+        <param name="anchor2_coordinates" value="1486, 861, 3636" /><!--"1486, 861, 3636" />-->
+        <param name="anchor3_coordinates" value="1990, 1760, 762" /><!--"1990, 1760, 762" />-->
+        <param name="anchor4_coordinates" value="2009, 1231, -1735" /><!--"2009, 1231, -1735" />-->
+        <param name="anchor5_coordinates" value="-1547, 2212. -1828" /><!--"-1547, 2212. -1828" />-->
 
 
 
