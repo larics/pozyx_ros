@@ -1,12 +1,13 @@
 <launch>
 	
 	<arg name="imu_topic" default="/euroc3/imu" />
+	<arg name="group" default="Pozyx" />
 	<arg name="position_topic" default="/pozyx/measured"/>
 	
     <node name="msf_pose_sensor" pkg="msf_updates" type="pose_sensor" clear_params="true" output="screen">
           <remap from="msf_core/imu_state_input" to="$(arg imu_topic)" />
           <remap from="msf_updates/transform_input" to="$(arg position_topic)" />
-          
+          <param name="capability_group" value="$(arg group)" />
           <rosparam file="$(find pozyx_ros)/pose_sensor_fix_pozyx.yaml"/>
     </node>
 </launch>
