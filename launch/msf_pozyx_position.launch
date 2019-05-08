@@ -1,14 +1,13 @@
 <launch>
-	<node name="msf_position_filter" pkg="msf_updates" type="position_sensor" clear_params="true" output="screen">
-		
-		<!--remap from="msf_updates/position_input" to="/leica/position" /-->
-		<!--remap from="msf_updates/navsatfix_input" to="/mavros/global_position/raw/fix" /-->
-		
-		<remap from="msf_core/hl_state_input" to="/auk/fcu/ekf_state_out" />
-		<remap from="msf_core/correction" to="/auk/fcu/ekf_state_in"/>  
-		<remap from="msf_core/imu_state_input" to="/pozyx/imu" />
-		<remap from="msf_updates/transform_input" to="/pozyx/measured" />
-		<rosparam file="$(find pozyx_ros)/position_sensor_fix_pozyx.yaml"/>
-		
-	</node>
+	
+	<arg name="imu_topic" default="/euroc3/imu" />
+	<arg name="group" default="Pozyx" />
+	<arg name="position_topic" default="/pozyx/measured"/>
+	
+    <node name="msf_position_sensor" pkg="msf_updates" type="position_sensor" clear_params="true" output="screen">
+          <remap from="msf_core/imu_state_input" to="$(arg imu_topic)" />
+          <remap from="msf_updates/transform_input" to="$(arg position_topic)" />
+          <param name="capability_group" value="$(arg group)" />
+          <rosparam file="$(find pozyx_ros)/position_sensor_fix_pozyx.yaml"/>
+    </node>
 </launch>

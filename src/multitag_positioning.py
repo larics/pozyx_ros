@@ -76,7 +76,7 @@ class MultitagPositioning(object):
 
             self.pub_position.publish(pwc)
 
-            imu = Imu()
+            '''imu = Imu()
             imu.header.stamp = rospy.get_rostime()
             imu.header.frame_id = 'pozyx'
             imu.orientation =  pypozyx.Quaternion()
@@ -100,7 +100,7 @@ class MultitagPositioning(object):
             imu.angular_velocity.y = imu.angular_velocity.y * 0.01745
             imu.angular_velocity.z = imu.angular_velocity.z * 0.01745
 
-            self.pub_imu.publish(imu)
+            self.pub_imu.publish(imu)'''
 
             #al = SingleRegister()
             #self.pozyx.getUpdateInterval(al)
