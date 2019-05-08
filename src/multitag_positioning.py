@@ -4,7 +4,7 @@ import rospy
 import pypozyx
 from pypozyx import *
 from pypozyx.tools.version_check import perform_latest_version_check
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import Imu
 
 class MultitagPositioning(object):
@@ -23,7 +23,7 @@ class MultitagPositioning(object):
         self.filter_type = filter_type
         self.filter_strength = filter_strength
         self.ranging_protocol = ranging_protocol
-        self.pub_position = rospy.Publisher('pozyx/measured', PoseWithCovarianceStamped, queue_size=1)
+        self.pub_position = rospy.Publisher('pozyx/measured', TransformStamped, queue_size=1)
         self.pub_imu = rospy.Publisher('pozyx/imu', Imu, queue_size=1)
 
     def setup(self):
@@ -47,19 +47,19 @@ class MultitagPositioning(object):
 
     def loop(self):
         """Performs positioning and prints the results."""
-        pwc = PoseWithCovarianceStamped()
+        pwc = TransformStamped()
         pwc.header.stamp = rospy.get_rostime()
         pwc.header.frame_id = 'pozyx'
-        pwc.pose.pose.position = Coordinates()
-        pwc.pose.pose.orientation =  pypozyx.Quaternion()
+        position = Coordinates()
+        pwc.transform.rotation =  pypozyx.Quaternion()
 
         cov = pypozyx.PositionError()
 
-        status = self.pozyx.doPositioning(pwc.pose.pose.position, self.dimension, self.height, self.algorithm, self.tag_id)
+        status = self.pozyx.doPositioning(position, self.dimension, self.height, self.algorithm, self.tag_id)
 
         if status == POZYX_SUCCESS:
-            '''self.pozyx.getQuaternion(pwc.pose.pose.orientation)
-            self.pozyx.getPositionError(cov)
+            self.pozyx.getQuaternion(pwc.transform.rotation)
+            '''self.pozyx.getPositionError(cov)
 
             cov_row1 =[cov.x, cov.xy, cov.xz, 0, 0, 0]
             cov_row2 =[cov.xy, cov.y, cov.yz, 0, 0, 0]
@@ -70,13 +70,13 @@ class MultitagPositioning(object):
 
             pwc.pose.covariance = cov_row1 + cov_row2 + cov_row3 + cov_row4 + cov_row5 + cov_row6'''
 
-            pwc.pose.pose.position.x = pwc.pose.pose.position.x * 0.001
-            pwc.pose.pose.position.y = pwc.pose.pose.position.y * 0.001
-            pwc.pose.pose.position.z = pwc.pose.pose.position.z * 0.001
+            pwc.transform.translation.x = position.x * 0.001
+            pwc.transform.translation.y = position.y * 0.001
+            pwc.transform.translation.z = position.z * 0.001
 
             self.pub_position.publish(pwc)
 
-            '''imu = Imu()
+            imu = Imu()
             imu.header.stamp = rospy.get_rostime()
             imu.header.frame_id = 'pozyx'
             imu.orientation =  pypozyx.Quaternion()
@@ -93,14 +93,14 @@ class MultitagPositioning(object):
             #Convert from mg to m/s2
             imu.linear_acceleration.x = imu.linear_acceleration.x * 0.0098
             imu.linear_acceleration.y = imu.linear_acceleration.y * 0.0098
-            imu.linear_acceleration.z = imu.linear_acceleration.z * 0.0098
+            imu.linear_acceleration.z = imu.linear_acceleration.z * 0.0098 + 9.81
 
             #Convert from Degree/second to rad/s
             imu.angular_velocity.x = imu.angular_velocity.x * 0.01745
             imu.angular_velocity.y = imu.angular_velocity.y * 0.01745
             imu.angular_velocity.z = imu.angular_velocity.z * 0.01745
 
-            self.pub_imu.publish(imu)'''
+            self.pub_imu.publish(imu)
 
             #al = SingleRegister()
             #self.pozyx.getUpdateInterval(al)
@@ -108,6 +108,7 @@ class MultitagPositioning(object):
 
         else:
             self.printPublishErrorCode("positioning", self.tag_id)
+            print "Nije dobro"
 
 
 
