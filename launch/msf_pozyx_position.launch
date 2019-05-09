@@ -2,7 +2,7 @@
 	
 	<arg name="imu_topic" default="/euroc3/imu" />
 	<arg name="group" default="Pozyx" />
-	<arg name="position_topic" default="/pozyx/measured"/>
+	<arg name="position_topic" default="/pozyx/estimated_transform"/>
 	
     <node name="msf_position_sensor" pkg="msf_updates" type="position_sensor" clear_params="true" output="screen">
           <remap from="msf_core/imu_state_input" to="$(arg imu_topic)" />
