@@ -59,8 +59,8 @@ void PozyxEstimator::run()
 		transform_estimated.child_frame_id = raw_transform_.child_frame_id;
 
 		transform_estimated.transform.translation.x = kf_x_.getPosition();
-		transform_estimated.transform.translation.y = kf_y_.getPosition();
-		transform_estimated.transform.translation.z = kf_z_.getPosition();
+		transform_estimated.transform.translation.y = -kf_z_.getPosition();
+		transform_estimated.transform.translation.z = kf_y_.getPosition();
 
 		transform_estimated.transform.rotation.x = raw_transform_.transform.rotation.x;
 		transform_estimated.transform.rotation.y = raw_transform_.transform.rotation.y;
