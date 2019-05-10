@@ -7,9 +7,9 @@ PozyxEstimator::PozyxEstimator(int rate)
 	  seq_(0)
 {
 	transform_input_ = n.subscribe("/eaglered/position", 1, &PozyxEstimator::transformInputCbRos, this);
-	imu_input = n.subscribe("/euroc3/imu", 1, &PozyxEstimator::imucb, this);
+	//imu_input = n.subscribe("/euroc3/imu", 1, &PozyxEstimator::imucb, this);
 	transform_estimated_pub_ = n.advertise<geometry_msgs::TransformStamped>("estimated_transform", 1);
-	imu_pub_ = n.advertise<sensor_msgs::Imu>("imu", 1);
+	//imu_pub_ = n.advertise<sensor_msgs::Imu>("imu", 1);
 
 	kf_x_.setMeasureNoise(10.0);
 	kf_y_.setMeasureNoise(10.0);
@@ -24,12 +24,12 @@ PozyxEstimator::PozyxEstimator(int rate)
 	kf_z_.setVelocityNoise(10.0);
 }
 
-void PozyxEstimator::imucb(const sensor_msgs::Imu &imu)
+/*void PozyxEstimator::imucb(const sensor_msgs::Imu &imu)
 {
 	sensor_msgs::Imu imu1 = imu;
 	imu1.header.stamp = ros::Time::now();
 	imu_pub_.publish(imu1);
-}
+}*/
 
 void PozyxEstimator::run()
 {
