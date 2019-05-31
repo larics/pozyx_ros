@@ -31,11 +31,11 @@
         <param name="anchor2_coordinates" value="1486, 861, 3636" /><!--"1486, 861, 3636" />-->
         <param name="anchor3_coordinates" value="1990, 1760, 762" /><!--"1990, 1760, 762" />-->
         <param name="anchor4_coordinates" value="2009, 1231, -1735" /><!--"2009, 1231, -1735" />-->
-        <param name="anchor5_coordinates" value="-1547, 2212. -1828" /><!--"-1547, 2212. -1828" />-->
+        <param name="anchor5_coordinates" value="-1547, 2212, -1828" /><!--"-1547, 2212. -1828" />-->
     </node>
 
     <node name="pozyx_estimator_node" pkg="pozyx_ros" type="pozyx_estimator_node" output="screen">
-        <param name="rate" value="40" />
+        <param name="rate" value="25" />
         <!--remap from="/eaglered/position" to="$(arg imu_topic)" /-->
         <!--remap from="msf_core/imu_state_input" to="$(arg imu_topic)" /-->
     </node>

@@ -1,4 +1,5 @@
 #include <pozyx_ros/PozyxEstimator.h>
+#include <nav_msgs/Odometry.h>
 
 PozyxEstimator::PozyxEstimator(int rate)
 	: rate_(rate),
@@ -8,7 +9,8 @@ PozyxEstimator::PozyxEstimator(int rate)
 {
 	transform_input_ = n.subscribe("pozyx/measured", 1, &PozyxEstimator::transformInputCbRos, this);
 	//imu_input = n.subscribe("/euroc3/imu", 1, &PozyxEstimator::imucb, this);
-	transform_estimated_pub_ = n.advertise<geometry_msgs::TransformStamped>("poyzx/estimated_transform", 1);
+	transform_estimated_pub_ = n.advertise<geometry_msgs::TransformStamped>("pozyx/estimated_transform", 1);
+	odometry_estimated_pub_ = n.advertise<nav_msgs::Odometry>("pozyx/estimated_odometry", 1);
 	//imu_pub_ = n.advertise<sensor_msgs::Imu>("imu", 1);
 
 	kf_x_.setMeasureNoise(10.0);
@@ -67,7 +69,25 @@ void PozyxEstimator::run()
 		transform_estimated.transform.rotation.z = raw_transform_.transform.rotation.z;
 		transform_estimated.transform.rotation.w = raw_transform_.transform.rotation.w;
 
+		nav_msgs::Odometry odometry_estimated;
+
+		odometry_estimated.header = transform_estimated.header;
+		odometry_estimated.child_frame_id = raw_transform_.child_frame_id;
+
+		odometry_estimated.pose.pose.position.x = kf_x_.getPosition();
+		odometry_estimated.pose.pose.position.y = kf_y_.getPosition();
+		odometry_estimated.pose.pose.position.z = kf_z_.getPosition();
+		odometry_estimated.pose.pose.orientation.x = raw_transform_.transform.rotation.x;
+		odometry_estimated.pose.pose.orientation.y = raw_transform_.transform.rotation.y;
+		odometry_estimated.pose.pose.orientation.z = raw_transform_.transform.rotation.z;
+		odometry_estimated.pose.pose.orientation.w = raw_transform_.transform.rotation.w;
+
+		odometry_estimated.twist.twist.linear.x = kf_x_.getVelocity();
+		odometry_estimated.twist.twist.linear.y = kf_y_.getVelocity();
+		odometry_estimated.twist.twist.linear.z = kf_z_.getVelocity();
+
 		transform_estimated_pub_.publish(transform_estimated);
+		odometry_estimated_pub_.publish(odometry_estimated);
 		loop_rate.sleep();
 	}
 }

@@ -16,7 +16,7 @@ public:
 private:
 	ros::NodeHandle n;
 	ros::Subscriber transform_input_, imu_input;
-	ros::Publisher transform_estimated_pub_, imu_pub_;
+	ros::Publisher transform_estimated_pub_, odometry_estimated_pub_;
 	int rate_, seq_;
 	bool new_measurement_, start_flag_;
 

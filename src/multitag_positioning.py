@@ -186,7 +186,7 @@ if __name__ == "__main__":
     for i in range(number_of_anchors):
         anchor_id.append(int(rospy.get_param('~anchor' + str(i) + '_id', 0x6E7A), 16))
         anchor_coordinates.append(eval(rospy.get_param('~anchor' + str(i) + '_coordinates', '0, 0, 0')))
-
+        
     frequency = int(rospy.get_param('~frequency', 50))
     algorithm = int(rospy.get_param('~algorithm', 4))
     dimension = int(rospy.get_param('~dimension', 3))
