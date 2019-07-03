@@ -6,6 +6,7 @@ from pypozyx import *
 from pypozyx.tools.version_check import perform_latest_version_check
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import Imu
+from numpy import matmul
 
 class MultitagPositioning(object):
     """Continuously performs multitag positioning"""
@@ -70,9 +71,14 @@ class MultitagPositioning(object):
 
             pwc.pose.covariance = cov_row1 + cov_row2 + cov_row3 + cov_row4 + cov_row5 + cov_row6'''
 
-            pwc.transform.translation.x = position.x * 0.001
-            pwc.transform.translation.y = position.y * 0.001
-            pwc.transform.translation.z = position.z * 0.001
+            matrix = np.matrix([[-0.272008, 0.962232, 0.010988], [-0.962246, -0.272092, 0.007021], [0.009745, -0.008663, 0.999915]])
+            vector = np.matrix([[position.x * 0.001], [position.y * 0.001], [position.z * 0.001]])
+
+            novi_vector = matmul(matrix,vector)
+
+            pwc.transform.translation.x = novi_vector.item(0)
+            pwc.transform.translation.y = novi_vector.item(1)
+            pwc.transform.translation.z = novi_vector.item(2)
 
             self.pub_position.publish(pwc)
 

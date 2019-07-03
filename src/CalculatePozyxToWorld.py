@@ -13,10 +13,10 @@ import sys, termios, tty, os, time
 
 class PointsSubscriber():
     def __init__(self):
-        self.pozyx_odometry_sub = rospy.Subscriber("pozyx_odometry", Odometry, self.pozyxOdometryCallback)
+        self.pozyx_odometry_sub = rospy.Subscriber("/pozyx/estimated_odometry", Odometry, self.pozyxOdometryCallback)
         self.pozyx_transform_sub = rospy.Subscriber("pozyx_transform", TransformStamped, self.pozyxtransformCallback)
 
-        self.world_odometry_sub = rospy.Subscriber("world_odometry", Odometry, self.worldOdometryCallback)
+        self.world_odometry_sub = rospy.Subscriber("/mavros/global_position/local", Odometry, self.worldOdometryCallback)
         self.world_transform_sub = rospy.Subscriber("world_transform", TransformStamped, self.worldtransformCallback)
 
         self.pozyx_points = mat([0.0, 0.0, 0.0])
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     transformed_points_visualize_pub = rospy.Publisher('transformed_visualization_points', Marker, queue_size=1)
 
     frequency = int(rospy.get_param('~frequency', 20))
-    max_number_of_points = int(rospy.get_param('~number_of_points', 500))
+    max_number_of_points = int(rospy.get_param('~number_of_points', 700))
     output_file = rospy.get_param('~output_file', "transformation_file.txt")
 
     rospack = rospkg.RosPack()
