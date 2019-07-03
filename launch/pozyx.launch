@@ -17,21 +17,26 @@
 
         <param name="frequency" value="40" />
 
-        <param name="number_of_anchors" value="6" />
+        <param name="number_of_anchors" value="8" />
 
-        <param name="anchor0_id" value="0x6e2e" /> 
-        <param name="anchor1_id" value="0x6e7a" />
-        <param name="anchor2_id" value="0x6e3c" />
-        <param name="anchor3_id" value="0x6e2f" />
-        <param name="anchor4_id" value="0x6e3f" />
-        <param name="anchor5_id" value="0x6e1f" />
+        <param name="anchor0_id" value="0x677e" /> 
+        <param name="anchor1_id" value="0x6747" />
+        <param name="anchor2_id" value="0x670f" />
+        <param name="anchor3_id" value="0x6e3c" />
+        <param name="anchor4_id" value="0x6e2f" />
+        <param name="anchor5_id" value="0x6e1b" />
+        <param name="anchor6_id" value="0x6741" />
+        <param name="anchor7_id" value="0x6742" />
 
-        <param name="anchor0_coordinates" value="-1503, 2859, 1619" /><!--"-1503, 2859, 1619" />-->
-        <param name="anchor1_coordinates" value="-687, 1725, 3716" /><!--"-687, 1725, 3716" />-->
-        <param name="anchor2_coordinates" value="1486, 861, 3636" /><!--"1486, 861, 3636" />-->
-        <param name="anchor3_coordinates" value="1990, 1760, 762" /><!--"1990, 1760, 762" />-->
-        <param name="anchor4_coordinates" value="2009, 1231, -1735" /><!--"2009, 1231, -1735" />-->
-        <param name="anchor5_coordinates" value="-1547, 2212, -1828" /><!--"-1547, 2212. -1828" />-->
+
+        <param name="anchor0_coordinates" value="0, 0, 1950" />
+        <param name="anchor1_coordinates" value="6760, 0, 1240" />
+        <param name="anchor2_coordinates" value="11018, 0, 2910" />
+        <param name="anchor3_coordinates" value="12648, -11707, 1410" />
+        <param name="anchor4_coordinates" value="2340, -13797, 1140" />
+        <param name="anchor5_coordinates" value="910, -13836, 2310" />
+        <param name="anchor6_coordinates" value="14268, -8916, 1710" />
+        <param name="anchor7_coordinates" value="-10, -8320, 1730" />
     </node>
 
     <node name="pozyx_estimator_node" pkg="pozyx_ros" type="pozyx_estimator_node" output="screen">
