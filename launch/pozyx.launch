@@ -33,10 +33,10 @@
         <param name="anchor1_coordinates" value="6760, 0, 1240" />
         <param name="anchor2_coordinates" value="11018, 0, 2910" />
         <param name="anchor3_coordinates" value="12648, -11707, 1410" />
-        <param name="anchor4_coordinates" value="2340, -13797, 1140" />
-        <param name="anchor5_coordinates" value="910, -13836, 2310" />
+        <param name="anchor4_coordinates" value="2250, -13797, 1140" />
+        <param name="anchor5_coordinates" value="820, -13836, 2310" />
         <param name="anchor6_coordinates" value="14268, -8916, 1710" />
-        <param name="anchor7_coordinates" value="-10, -8320, 1730" />
+        <param name="anchor7_coordinates" value="-100, -8320, 1730" />
     </node>
 
     <node name="pozyx_estimator_node" pkg="pozyx_ros" type="pozyx_estimator_node" output="screen">
