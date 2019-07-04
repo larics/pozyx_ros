@@ -7,6 +7,7 @@ from pypozyx.tools.version_check import perform_latest_version_check
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import Imu
 from numpy import matmul
+import numpy as np
 
 class MultitagPositioning(object):
     """Continuously performs multitag positioning"""

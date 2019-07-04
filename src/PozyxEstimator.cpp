@@ -13,17 +13,17 @@ PozyxEstimator::PozyxEstimator(int rate)
 	odometry_estimated_pub_ = n.advertise<nav_msgs::Odometry>("pozyx/estimated_odometry", 1);
 	//imu_pub_ = n.advertise<sensor_msgs::Imu>("imu", 1);
 
-	kf_x_.setMeasureNoise(10.0);
-	kf_y_.setMeasureNoise(10.0);
-	kf_z_.setMeasureNoise(10.0);
+	kf_x_.setMeasureNoise(20.0);
+	kf_y_.setMeasureNoise(20.0);
+	kf_z_.setMeasureNoise(20.0);
 
 	kf_x_.setPositionNoise(0.1);
 	kf_y_.setPositionNoise(0.1);
 	kf_z_.setPositionNoise(0.1);
 
-	kf_x_.setVelocityNoise(10.0);
-	kf_y_.setVelocityNoise(10.0);
-	kf_z_.setVelocityNoise(10.0);
+	kf_x_.setVelocityNoise(1.0);
+	kf_y_.setVelocityNoise(1.0);
+	kf_z_.setVelocityNoise(1.0);
 }
 
 /*void PozyxEstimator::imucb(const sensor_msgs::Imu &imu)
