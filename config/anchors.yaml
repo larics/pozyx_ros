@@ -1,0 +1,11 @@
+anchors:
+- id: '0x6742'
+  coordinates: [3565, 2176, 690]
+- id: '0x677e'
+  coordinates: [2803, -976, 445]
+- id: '0x6e1b'
+  coordinates: [832, 3369, 925]
+- id: '0x6e2e'
+  coordinates: [1237, -1305, 755]
+- id: '0x6e2f'
+  coordinates: [0, 0, 890]

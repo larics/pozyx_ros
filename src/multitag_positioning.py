@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
+import tf2_ros
 import pypozyx
 from pypozyx import *
 from pypozyx.tools.version_check import perform_latest_version_check
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, Quaternion, Vector3
 from sensor_msgs.msg import Imu
 from numpy import matmul
 import numpy as np
@@ -12,12 +13,17 @@ import numpy as np
 class MultitagPositioning(object):
     """Continuously performs multitag positioning"""
 
-    def __init__(self, pozyx, osc_udp_client, tag_id, anchors, algorithm=PozyxConstants.POSITIONING_ALGORITHM_UWB_ONLY,
-                 dimension=PozyxConstants.DIMENSION_3D, height=1000, filter_type=PozyxConstants.FILTER_TYPE_FIR, filter_strength = 2, ranging_protocol = 0):
+    def __init__(self, pozyx, osc_udp_client, tags, anchors,
+                 algorithm=PozyxConstants.POSITIONING_ALGORITHM_UWB_ONLY,
+                 dimension=PozyxConstants.DIMENSION_3D,
+                 height=1000,
+                 filter_type=PozyxConstants.FILTER_TYPE_FIR,
+                 filter_strength = 2, ranging_protocol = 0):
+
         self.pozyx = pozyx
         self.osc_udp_client = osc_udp_client
 
-        self.tag_id = tag_id
+        self.tag_id = tags[0]  # TODO: implement real multi-tag positioning.
         self.anchors = anchors
         self.algorithm = algorithm
         self.dimension = dimension
@@ -27,6 +33,23 @@ class MultitagPositioning(object):
         self.ranging_protocol = ranging_protocol
         self.pub_position = rospy.Publisher('pozyx/measured', TransformStamped, queue_size=1)
         self.pub_imu = rospy.Publisher('pozyx/imu', Imu, queue_size=1)
+
+
+        # Initialize the TF broadcaster.
+        self.tf_broadcaster = tf2_ros.TransformBroadcaster()
+        self.anchor_transforms = {}
+        for anchor in self.anchors:
+            anchor_str_id = "0x{:04X}".format(anchor.network_id)
+            t = TransformStamped()
+            t.header.stamp = rospy.Time.now()
+            t.header.frame_id = 'pozyx'
+            t.child_frame_id = anchor_str_id
+            t.transform.translation.x = anchor.data[2] / 1000.0
+            t.transform.translation.y = anchor.data[3] / 1000.0
+            t.transform.translation.z = anchor.data[4] / 1000.0
+            t.transform.rotation = Quaternion(0, 0, 0, 1)
+            self.anchor_transforms[anchor_str_id] = t
+
 
     def setup(self):
         """Sets up the Pozyx for positioning by calibrating its anchor list."""
@@ -52,38 +75,27 @@ class MultitagPositioning(object):
         pwc = TransformStamped()
         pwc.header.stamp = rospy.get_rostime()
         pwc.header.frame_id = 'pozyx'
+        pwc.transform.rotation =  pypozyx.Quaternion()        
+        
         position = Coordinates()
-        pwc.transform.rotation =  pypozyx.Quaternion()
-
-        cov = pypozyx.PositionError()
-
         status = self.pozyx.doPositioning(position, self.dimension, self.height, self.algorithm, self.tag_id)
 
         if status == POZYX_SUCCESS:
+            # Package Pozyx's orientation.
             self.pozyx.getQuaternion(pwc.transform.rotation)
-            '''self.pozyx.getPositionError(cov)
 
-            cov_row1 =[cov.x, cov.xy, cov.xz, 0, 0, 0]
-            cov_row2 =[cov.xy, cov.y, cov.yz, 0, 0, 0]
-            cov_row3 =[cov.xz, cov.yz, cov.z, 0, 0, 0]
-            cov_row4 =[0, 0, 0, 0, 0, 0]
-            cov_row5 =[0, 0, 0, 0, 0, 0]
-            cov_row6 =[0, 0, 0, 0, 0, 0]
+            # Package Pozyx's position.
+            pwc.child_frame_id = 'tag'
+            pwc.transform.translation.x = position.x * 0.001
+            pwc.transform.translation.y = position.y * 0.001
+            pwc.transform.translation.z = position.z * 0.001
 
-            pwc.pose.covariance = cov_row1 + cov_row2 + cov_row3 + cov_row4 + cov_row5 + cov_row6'''
-
-            matrix = np.matrix([[-0.272008, 0.962232, 0.010988], [-0.962246, -0.272092, 0.007021], [0.009745, -0.008663, 0.999915]])
-            vector = np.matrix([[position.x * 0.001], [position.y * 0.001], [position.z * 0.001]])
-
-            novi_vector = matmul(matrix,vector)
-
-            pwc.transform.translation.x = novi_vector.item(0)
-            pwc.transform.translation.y = novi_vector.item(1)
-            pwc.transform.translation.z = novi_vector.item(2)
-
+            # Publish Pozyx's pose and transform.
             self.pub_position.publish(pwc)
+            self.tf_broadcaster.sendTransform(pwc)
 
-            '''imu = Imu()
+            # Package and send Pozyx's IMU data.
+            imu = Imu()
             imu.header.stamp = rospy.get_rostime()
             imu.header.frame_id = 'pozyx'
             imu.orientation =  pypozyx.Quaternion()
@@ -107,16 +119,19 @@ class MultitagPositioning(object):
             imu.angular_velocity.y = imu.angular_velocity.y * 0.01745
             imu.angular_velocity.z = imu.angular_velocity.z * 0.01745
 
-            self.pub_imu.publish(imu)'''
+            self.pub_imu.publish(imu)
 
-            #al = SingleRegister()
-            #self.pozyx.getUpdateInterval(al)
-            #print al.value
+            # al = SingleRegister()
+            # self.pozyx.getUpdateInterval(al)
+            # print al.value
 
         else:
             self.printPublishErrorCode("positioning", self.tag_id)
-            print "Nije dobro"
 
+        # Send anchor transforms
+        for transform in self.anchor_transforms.values():
+            transform.header.stamp = rospy.Time.now()
+            self.tf_broadcaster.sendTransform(transform)
 
 
     def printPublishErrorCode(self, operation, network_id):
@@ -180,45 +195,37 @@ if __name__ == "__main__":
     if check_pypozyx_version:
         perform_latest_version_check()
 
-    # shortcut to not have to find out the port yourself.
+    # Shortcut to not have to find out the port yourself.
     serial_port = get_first_pozyx_serial_port()
     if serial_port is None:
         print("No Pozyx connected. Check your USB cable or your driver!")
         quit()
 
-    number_of_anchors = int(rospy.get_param('~number_of_anchors', 4))
-    anchor_id = []
-    anchor_coordinates = []
+    # Get all ROS parameters.
+    config = {}
+    config['height']    = int(rospy.get_param('~height', 1000))
+    config['algorithm'] = int(rospy.get_param('~algorithm', 4))
+    config['dimension'] = int(rospy.get_param('~dimension', 3))
+    config['filter_type']      = int(rospy.get_param('~filter_type', 1))
+    config['filter_strength']  = int(rospy.get_param('~filter_strength', 2))
+    config['ranging_protocol'] = int(rospy.get_param('~ranging_protocol', 2))
 
-    for i in range(number_of_anchors):
-        anchor_id.append(int(rospy.get_param('~anchor' + str(i) + '_id', 0x6E7A), 16))
-        anchor_coordinates.append(eval(rospy.get_param('~anchor' + str(i) + '_coordinates', '0, 0, 0')))
-        
-    frequency = int(rospy.get_param('~frequency', 50))
-    algorithm = int(rospy.get_param('~algorithm', 4))
-    dimension = int(rospy.get_param('~dimension', 3))
-    height    = int(rospy.get_param('~height', 1000))
-    filter_type    = int(rospy.get_param('~filter_type', 1))
-    filter_strength    = int(rospy.get_param('~filter_strength', 2))
-    ranging_protocol    = int(rospy.get_param('~ranging_protocol', 2))
-
-    # IDs of the tags to position, add None to position the local tag as well.
-    #tag_ids = [None, 0x6951]
-
-    # necessary data for calibration
+    # Get anchor positions.
     anchors = []
-
-    for i in range(number_of_anchors):
-        print anchor_coordinates[i][0]
-        anchors.append(DeviceCoordinates(anchor_id[i], 1, Coordinates(int(anchor_coordinates[i][0]), int(anchor_coordinates[i][1]), int(anchor_coordinates[i][2]))))
+    for anchor in rospy.get_param('~anchors'):
+        anchors.append(DeviceCoordinates(int(anchor['id'], 16), 1, Coordinates(*anchor['coordinates'])))
+        
+    # IDs of the tags to position, add None to position the local tag as well.
+    tags = [None]
 
     pozyx = PozyxSerial(serial_port)
 
-    r = MultitagPositioning(pozyx, None, None, anchors, algorithm, dimension, height, filter_type, filter_strength, ranging_protocol)
-    r.setup()
+    mtp = MultitagPositioning(pozyx, None, tags, anchors, **config)
+    mtp.setup()
 
+    frequency = int(rospy.get_param('~frequency', 50))
     rate = rospy.Rate(frequency)
 
     while not rospy.is_shutdown():
-        r.loop()
+        mtp.loop()
         rate.sleep()
