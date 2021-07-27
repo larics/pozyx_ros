@@ -27,3 +27,6 @@ target_link_libraries(KalmanFilter ${catkin_LIBRARIES})
 
 add_executable(pozyx_estimator_node src/PozyxEstimator.cpp)
 target_link_libraries(pozyx_estimator_node KalmanFilter ${catkin_LIBRARIES})
+
+catkin_install_python(PROGRAMS src/multitag_positioning.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
