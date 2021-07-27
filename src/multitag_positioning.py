@@ -4,7 +4,10 @@ import rospy
 import tf2_ros
 import pypozyx
 from pypozyx import *
+from pypozyx.definitions.bitmasks import *
+from pypozyx.definitions.registers import *
 from pypozyx.tools.version_check import perform_latest_version_check
+from pypozyx.structures.device_information import DeviceDetails
 from geometry_msgs.msg import TransformStamped, Quaternion, Vector3
 from sensor_msgs.msg import Imu
 from numpy import matmul
@@ -70,6 +73,31 @@ class MultitagPositioning(object):
         self.pozyx.setRangingProtocol(self.ranging_protocol, self.tag_id)
         self.printPublishAnchorConfiguration()
 
+    def test(self):
+        data = DeviceDetails()
+        pozyx.getRead(POZYX_WHO_AM_I, data, remote_id=self.tag_id)
+
+        if not data[3] & POZYX_ST_RESULT_ACC:
+            rospy.logerror("Self-test failed: ACCELEROMETER")
+        if not data[3] & POZYX_ST_RESULT_MAGN:
+            rospy.logerror("Self-test failed: MAGNETOMETER")
+        if not data[3] & POZYX_ST_RESULT_GYR:
+            rospy.logerror("Self-test failed: GYRO")
+        if not data[3] & POZYX_ST_RESULT_MCU:
+            rospy.logerror("Self-test failed: MCU")
+        if not data[3] & POZYX_ST_RESULT_PRES:
+            rospy.logerror("Self-test failed: PRESSURE")
+        if not data[3] & POZYX_ST_RESULT_UWB:
+            rospy.logerror("Self-test failed: UWB")
+        if data[3] != 0b111111:
+            quit()
+
+        if data[4] != 0:
+            rospy.logerror("Self-test error: 0x%0.2x", data[4])
+            quit()
+
+        print("SELF-TEST PASSED!")
+
     def loop(self):
         """Performs positioning and prints the results."""
         pwc = TransformStamped()
@@ -94,39 +122,35 @@ class MultitagPositioning(object):
             self.pub_position.publish(pwc)
             self.tf_broadcaster.sendTransform(pwc)
 
-            # Package and send Pozyx's IMU data.
-            imu = Imu()
-            imu.header.stamp = rospy.get_rostime()
-            imu.header.frame_id = 'pozyx'
-            imu.orientation =  pypozyx.Quaternion()
-            imu.orientation_covariance = [0,0,0,0,0,0,0,0,0]
-            imu.angular_velocity = pypozyx.AngularVelocity()
-            imu.angular_velocity_covariance = [0,0,0,0,0,0,0,0,0]
-            imu.linear_acceleration = pypozyx.LinearAcceleration()
-            imu.linear_acceleration_covariance = [0,0,0,0,0,0,0,0,0]
-
-            self.pozyx.getQuaternion(imu.orientation)
-            self.pozyx.getAngularVelocity_dps(imu.angular_velocity)
-            self.pozyx.getLinearAcceleration_mg(imu.linear_acceleration)
-
-            #Convert from mg to m/s2
-            imu.linear_acceleration.x = imu.linear_acceleration.x * 0.0098
-            imu.linear_acceleration.y = imu.linear_acceleration.y * 0.0098
-            imu.linear_acceleration.z = imu.linear_acceleration.z * 0.0098 + 9.81
-
-            #Convert from Degree/second to rad/s
-            imu.angular_velocity.x = imu.angular_velocity.x * 0.01745
-            imu.angular_velocity.y = imu.angular_velocity.y * 0.01745
-            imu.angular_velocity.z = imu.angular_velocity.z * 0.01745
-
-            self.pub_imu.publish(imu)
-
-            # al = SingleRegister()
-            # self.pozyx.getUpdateInterval(al)
-            # print al.value
-
         else:
             self.printPublishErrorCode("positioning", self.tag_id)
+
+        # Package and send Pozyx's IMU data.
+        imu = Imu()
+        imu.header.stamp = rospy.get_rostime()
+        imu.header.frame_id = 'pozyx'
+        imu.orientation =  pypozyx.Quaternion()
+        imu.orientation_covariance = [0,0,0,0,0,0,0,0,0]
+        imu.angular_velocity = pypozyx.AngularVelocity()
+        imu.angular_velocity_covariance = [0,0,0,0,0,0,0,0,0]
+        imu.linear_acceleration = pypozyx.LinearAcceleration()
+        imu.linear_acceleration_covariance = [0,0,0,0,0,0,0,0,0]
+
+        self.pozyx.getQuaternion(imu.orientation)
+        self.pozyx.getAngularVelocity_dps(imu.angular_velocity)
+        self.pozyx.getLinearAcceleration_mg(imu.linear_acceleration)
+
+        #Convert from mg to m/s2
+        imu.linear_acceleration.x = imu.linear_acceleration.x * 0.0098
+        imu.linear_acceleration.y = imu.linear_acceleration.y * 0.0098
+        imu.linear_acceleration.z = imu.linear_acceleration.z * 0.0098 + 9.81
+
+        #Convert from Degree/second to rad/s
+        imu.angular_velocity.x = imu.angular_velocity.x * 0.01745
+        imu.angular_velocity.y = imu.angular_velocity.y * 0.01745
+        imu.angular_velocity.z = imu.angular_velocity.z * 0.01745
+
+        self.pub_imu.publish(imu)
 
         # Send anchor transforms
         for transform in self.anchor_transforms.values():
@@ -222,6 +246,7 @@ if __name__ == "__main__":
 
     mtp = MultitagPositioning(pozyx, None, tags, anchors, **config)
     mtp.setup()
+    mtp.test()
 
     frequency = int(rospy.get_param('~frequency', 50))
     rate = rospy.Rate(frequency)
