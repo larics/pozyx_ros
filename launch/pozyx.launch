@@ -1,5 +1,6 @@
 <launch>
-    <node name="multitag_positioning" pkg="pozyx_ros" type="multitag_positioning.py" output="screen">
+    <arg name="namespace" default="$(env UAV_NAMESPACE)"/>
+    <node name="multitag_positioning" pkg="pozyx_ros" type="multitag_positioning.py" output="screen" ns="$(arg namespace)">
         <param name="frequency" value="40" />
     </node>
 </launch>
