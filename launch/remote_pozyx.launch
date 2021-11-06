@@ -1,0 +1,21 @@
+<launch>
+
+    <node name="remote_positioning" pkg="pozyx_ros" type="remote_positioning.py" output="screen">
+        <!-- POZYX_POS_ALG_UWB_ONLY = 0   POZYX_POS_ALG_TRACKING = 4-->
+        <param name="algorithm" value="4" />
+
+        <!-- POZYX_3D = 3    POZYX_2D = 2    POZYX_2_5D = 1 -->
+        <param name="dimension" value="1" />
+
+        <!-- Height of the tag, required in 2.5D positioning -->
+        <param name="height" value="260" />
+
+        <!-- Filter type FILTER_TYPE_FIR = 1, FILTER_TYPE_MOVINGAVERAGE = 3, FILTER_TYPE_MOVINGMEDIAN = 4, FILTER_TYPE_NONE = 0 -->
+        <param name="filter_type" value="4" />
+        <param name="filter_strength" value="10" />
+
+        <!-- POZYX_RANGE_PROTOCOL_PRECISION = 0, POZYX_RANGE_PROTOCOL_FAST = 1, POZYX_RANGE_PROTOCOL_TEST = 0x02 -->
+        <param name="ranging_protocol" value="1" />
+    </node>
+
+</launch>

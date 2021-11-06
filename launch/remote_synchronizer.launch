@@ -1,0 +1,14 @@
+<launch>
+
+    <node name="remote_synchronizer" pkg="pozyx_ros" type="synchronizer.py" output="screen">
+        <!-- Frequency of the positioning loop -->
+        <param name="frequency" value="20" />
+    </node>
+
+    <!-- Anchor positions file -->
+    <rosparam command="load" file="$(find pozyx_ros)/config/anchors.yaml" ns="pozyx"/>
+
+    <!-- Tags in use -->
+    <rosparam command="load" file="$(find pozyx_ros)/config/tags.yaml" ns="pozyx"/>
+
+</launch>
