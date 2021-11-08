@@ -78,22 +78,22 @@ class MultitagPositioning(object):
         pozyx.getRead(POZYX_WHO_AM_I, data, remote_id=self.tag_id)
 
         if not data[3] & POZYX_ST_RESULT_ACC:
-            rospy.logerror("Self-test failed: ACCELEROMETER")
+            rospy.logerr("Self-test failed: ACCELEROMETER")
         if not data[3] & POZYX_ST_RESULT_MAGN:
-            rospy.logerror("Self-test failed: MAGNETOMETER")
+            rospy.logerr("Self-test failed: MAGNETOMETER")
         if not data[3] & POZYX_ST_RESULT_GYR:
-            rospy.logerror("Self-test failed: GYRO")
+            rospy.logerr("Self-test failed: GYRO")
         if not data[3] & POZYX_ST_RESULT_MCU:
-            rospy.logerror("Self-test failed: MCU")
+            rospy.logerr("Self-test failed: MCU")
         if not data[3] & POZYX_ST_RESULT_PRES:
-            rospy.logerror("Self-test failed: PRESSURE")
+            rospy.logerr("Self-test failed: PRESSURE")
         if not data[3] & POZYX_ST_RESULT_UWB:
-            rospy.logerror("Self-test failed: UWB")
+            rospy.logerr("Self-test failed: UWB")
         if data[3] != 0b111111:
             quit()
 
         if data[4] != 0:
-            rospy.logerror("Self-test error: 0x%0.2x", data[4])
+            rospy.logerr("Self-test error: 0x%0.2x", data[4])
             quit()
 
         print("SELF-TEST PASSED!")
