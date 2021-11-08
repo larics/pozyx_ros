@@ -26,6 +26,7 @@ class Synchronizer(object):
             start = rospy.get_time()
             for tag in tags:
                 try:
+                    rospy.wait_for_service('{}/do_positioning'.format(tag))
                     do_positioning = rospy.ServiceProxy('{}/do_positioning'.format(tag), Trigger)
                     req = TriggerRequest()
                     resp = do_positioning(req)
@@ -34,8 +35,8 @@ class Synchronizer(object):
             rospy.sleep(0.001)
 
             elapsed = rospy.get_time() - start
-            if elapsed > 1 / desired_rate:
-                rospy.logwarn("Loop took %.4f seconds. That is %.4f too much.", elapsed, elapsed - 1 / desired_rate)
+            if elapsed > 1.0 / desired_rate:
+                rospy.logwarn("Loop took %.4f seconds. That is %.4f too much.", elapsed, elapsed - 1.0 / desired_rate)
             rate.sleep()
 
 if __name__ == "__main__":

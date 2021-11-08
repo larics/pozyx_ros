@@ -48,6 +48,11 @@ class SynchronizedPositioning(object):
         # Set up a service for running the positioning event.
         rospy.Service('do_positioning', Trigger, self.loop)
 
+        self.setup()
+        self.test()
+
+        rospy.spin()
+
     def setup(self):
         """Sets up the Pozyx for positioning by calibrating its anchor list."""
         print("------------POZYX MULTITAG POSITIONING V{} -------------".format(pypozyx.version))
@@ -111,7 +116,6 @@ class SynchronizedPositioning(object):
             pose.pose.pose.orientation = pypozyx.Quaternion()
             self.pozyx.getQuaternion(pose.pose.pose.orientation)
             # Package Pozyx's position.
-            pose.header.child_frame_id = self.name
             pose.pose.pose.position.x = position.x * 0.001
             pose.pose.pose.position.y = position.y * 0.001
             pose.pose.pose.position.z = position.z * 0.001
@@ -268,10 +272,6 @@ def main():
     pozyx = pypozyx.PozyxSerial(serial_port)
 
     mtp = SynchronizedPositioning(pozyx, None, tags, anchors, **config)
-    mtp.setup()
-    mtp.test()
-
-    rospy.spin()
 
 
 if __name__ == "__main__":
