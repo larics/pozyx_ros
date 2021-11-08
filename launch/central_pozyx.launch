@@ -22,12 +22,9 @@
 
         <!-- Anchor positions file -->
         <rosparam command="load" file="$(find pozyx_ros)/config/anchors.yaml"/>
-    </node>
 
-    <node name="pozyx_estimator_node" pkg="pozyx_ros" type="pozyx_estimator_node" output="screen">
-        <param name="rate" value="25" />
-        <!--remap from="/eaglered/position" to="$(arg imu_topic)" /-->
-        <!--remap from="msf_core/imu_state_input" to="$(arg imu_topic)" /-->
+        <!-- Tags in use -->
+        <rosparam command="load" file="$(find pozyx_ros)/config/tags.yaml" />
     </node>
 
 </launch>
