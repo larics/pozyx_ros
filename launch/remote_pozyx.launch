@@ -16,6 +16,9 @@
 
         <!-- POZYX_RANGE_PROTOCOL_PRECISION = 0, POZYX_RANGE_PROTOCOL_FAST = 1, POZYX_RANGE_PROTOCOL_TEST = 0x02 -->
         <param name="ranging_protocol" value="1" />
+
+        <!-- Who is initiating positioning? This device -> local=true. Remote device -> local=false. -->
+        <param name="local" value="false"/>
     </node>
 
 </launch>

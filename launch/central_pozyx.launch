@@ -20,11 +20,14 @@
         <!-- Frequency of the positioning loop -->
         <param name="frequency" value="20" />
 
-        <!-- Anchor positions file -->
-        <rosparam command="load" file="$(find pozyx_ros)/config/anchors.yaml"/>
-
-        <!-- Tags in use -->
-        <rosparam command="load" file="$(find pozyx_ros)/config/tags.yaml" />
+        <!-- Who is initiating positioning? This device -> local=true. Remote device -> local=false. -->
+        <param name="local" value="true"/>
     </node>
+
+    <!-- Anchor positions file -->
+    <rosparam command="load" file="$(find pozyx_ros)/config/anchors.yaml" ns="pozyx"/>
+
+    <!-- Tags in use -->
+    <rosparam command="load" file="$(find pozyx_ros)/config/tags.yaml" ns="pozyx"/>
 
 </launch>

@@ -117,7 +117,7 @@ class MultitagPositioning(object):
 
         print("SELF-TEST PASSED!")
 
-    def loop(self):
+    def loop(self, msg=None):
         """Performs positioning and prints the results."""
         for tag in self.tags:
             position = pypozyx.Coordinates()
@@ -247,6 +247,10 @@ def main():
         'filter_strength':  int(rospy.get_param('~filter_strength', 2)),
         'ranging_protocol': int(rospy.get_param('~ranging_protocol', 2))
     }
+    # If local is True, we are initiating the positioning from this device.
+    # Otherwise we except a message that tells us when to do it. In that case,
+    # we can't localize other tags.
+    local = rospy.get_param('~local', True)
 
     # Check for the latest PyPozyx version. Skip if this takes too long or is not needed by setting to False.
     check_pypozyx_version = True
@@ -261,13 +265,16 @@ def main():
 
     # Get anchor positions.
     anchors = []
-    for anchor in rospy.get_param('~anchors'):
+    for anchor in rospy.get_param('/pozyx/anchors'):
         anchors.append(pypozyx.DeviceCoordinates(int(anchor['id'], 16), 1, pypozyx.Coordinates(*anchor['coordinates'])))
 
-    # IDs of the tags to position, add None to position the local tag as well.
-    tags = []
-    for tag in rospy.get_param('~tags'):
-        tags.append({'id': int(tag['id'], 16) if tag['id'] != '' else None, 'name': tag['name']})
+    if local:
+        # IDs of the tags to position, add None to position the local tag as well.
+        tags = []
+        for tag in rospy.get_param('/pozyx/tags'):
+            tags.append({'id': int(tag['id'], 16) if tag['id'] != '' else None, 'name': tag['name']})
+    else:
+        tags = [None]
 
     # Create PyPozyx object and object for positioning.
     pozyx = pypozyx.PozyxSerial(serial_port)
@@ -276,13 +283,17 @@ def main():
     mtp.setup()
     mtp.test()
 
-    # Run the main while loop.
-    # TODO: sto ako se to ne moze odrzavati?
-    frequency = int(rospy.get_param('~frequency', 50))
-    rate = rospy.Rate(frequency)
-    while not rospy.is_shutdown():
-        mtp.loop()
-        rate.sleep()
+    if local:
+        # Run the main while loop.
+        # TODO: sto ako se to ne moze odrzavati?
+        frequency = int(rospy.get_param('~frequency', 50))
+        rate = rospy.Rate(frequency)
+        while not rospy.is_shutdown():
+            mtp.loop()
+            rate.sleep()
+    else:
+        rospy.Subscriber('do_positioning', Header, mtp.loop, queue_size=1)
+        rospy.spin()
 
 
 if __name__ == "__main__":
