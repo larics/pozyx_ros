@@ -22,6 +22,9 @@
 
         <!-- Who is initiating positioning? This device -> local=true. Remote device -> local=false. -->
         <param name="local" value="true"/>
+
+        <!-- Maximum change in distance between two consecutive samples. -->
+        <param name="max_change" value="0"/>
     </node>
 
     <!-- Anchor positions file -->

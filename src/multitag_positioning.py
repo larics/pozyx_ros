@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import math
 import rospy
 import tf2_ros
 
@@ -14,6 +14,20 @@ from geometry_msgs.msg import TransformStamped, Quaternion
 from sensor_msgs.msg import Imu
 
 
+def check_valid(self, current, last, allowed):
+    if last is None:
+        return 0
+
+    if allowed == 0:
+        return 0
+
+    distance = math.sqrt((current.x - last.x)**2 + (current.y - last.y)**2 + (current.z - last.z)**2)
+    if distance <= allowed:
+        return 0
+    else:
+        return distance
+
+
 class MultitagPositioning(object):
     """Continuously performs multitag positioning"""
 
@@ -22,7 +36,9 @@ class MultitagPositioning(object):
                  dimension=PozyxConstants.DIMENSION_3D,
                  height=1000,
                  filter_type=PozyxConstants.FILTER_TYPE_FIR,
-                 filter_strength=2, ranging_protocol=0):
+                 filter_strength=2,
+                 ranging_protocol=0,
+                 max_change=0):
 
         # Set class variables.
         self.pozyx = pozyx
@@ -36,14 +52,20 @@ class MultitagPositioning(object):
         self.filter_type = filter_type
         self.filter_strength = filter_strength
         self.ranging_protocol = ranging_protocol
+        self.wait_to_stabilize = 30 * len(self.tags)
+        self.max_change = max_change
 
         self.tag_names = {}
         self.pub_imu = {}
         self.pub_position = {}
+        self.last_valid = {}
+        self.tag_max_change = {}
         if self.tags == [None]:
-            self.tag_names[None] = 'tag'
+            self.tag_names[None] = tags[0]['name'] if tags[0]['name'] else 'tag'
             self.pub_imu[None] = rospy.Publisher('pozyx/imu', Imu, queue_size=1)
             self.pub_position[None] = rospy.Publisher('pozyx/measured', TransformStamped, queue_size=1)
+            self.last_valid[None] = None
+            self.tag_max_change[None] = max_change
         else:
             for tag in tags:
                 if tag['name']:
@@ -54,6 +76,8 @@ class MultitagPositioning(object):
                 self.pub_imu[tag['id']] = rospy.Publisher('{}/pozyx/imu'.format(name), Imu, queue_size=1)
                 self.pub_position[tag['id']] = rospy.Publisher('{}/pozyx/measured'.format(name),
                                                                TransformStamped, queue_size=1)
+                self.last_valid[tag['id']] = None
+                self.tag_max_change[tag['id']] = max_change
 
         # Initialize the TF broadcaster.
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
@@ -123,6 +147,11 @@ class MultitagPositioning(object):
             position = pypozyx.Coordinates()
             status = self.pozyx.doPositioning(position, self.dimension, self.height, self.algorithm, tag)
 
+            #  If using FAST protocol, skip first messages.
+            if self.ranging_protocol == 1 and self.wait_to_stabilize > 0:
+                self.wait_to_stabilize -= 1
+                continue
+
             if status == POZYX_SUCCESS:
                 # Prepare a ROS message for current position.
                 pwc = TransformStamped()
@@ -132,13 +161,21 @@ class MultitagPositioning(object):
                 pwc.transform.rotation = pypozyx.Quaternion()
                 self.pozyx.getQuaternion(pwc.transform.rotation)
                 # Package Pozyx's position.
-                pwc.child_frame_id = self.tag_names[tag]
+                pwc.child_frame_id = self.tag_names[tag] + '/pozyx'
                 pwc.transform.translation.x = position.x * 0.001
                 pwc.transform.translation.y = position.y * 0.001
                 pwc.transform.translation.z = position.z * 0.001
                 # Publish Pozyx's pose and transform.
-                self.pub_position[tag].publish(pwc)
                 self.tf_broadcaster.sendTransform(pwc)
+
+                error = check_valid(pwc.transform.translation, self.last_valid[tag], self.tag_max_change[tag])
+                if error == 0:
+                    self.last_valid[tag] = pwc.transform.translation
+                    self.tag_max_change[tag] = self.max_change
+                    self.pub_position[tag].publish(pwc)
+                else:
+                    self.tag_max_change[tag] += self.max_change
+                    rospy.logwarn("Pozyx outlier detected, error: %.3f", error)
 
                 # Prepare a ROS message for current IMU readings.
                 imu = Imu()
@@ -169,7 +206,7 @@ class MultitagPositioning(object):
             else:
                 self.printPublishErrorCode("positioning", tag)
 
-        # Send anchor transforms TODO: move this to static broadcaster
+        # Send anchor transforms.
         for transform in self.anchor_transforms.values():
             transform.header.stamp = rospy.Time.now()
             self.tf_broadcaster.sendTransform(transform)
@@ -245,7 +282,8 @@ def main():
         'dimension':        int(rospy.get_param('~dimension', 3)),
         'filter_type':      int(rospy.get_param('~filter_type', 1)),
         'filter_strength':  int(rospy.get_param('~filter_strength', 2)),
-        'ranging_protocol': int(rospy.get_param('~ranging_protocol', 2))
+        'ranging_protocol': int(rospy.get_param('~ranging_protocol', 2)),
+        'max_change':       float(rospy.get_param('~max_change', 0))
     }
     # If local is True, we are initiating the positioning from this device.
     # Otherwise we except a message that tells us when to do it. In that case,
