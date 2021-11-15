@@ -2,7 +2,7 @@
 
     <node name="remote_scheduler" pkg="pozyx_ros" type="remote_scheduler.py" output="screen">
         <!-- Frequency of positioning on each remote device individually. -->
-        <param name="desired_rate" value="20" />
+        <param name="desired_rate" value="10" />
     </node>
 
     <!-- Anchor positions file -->

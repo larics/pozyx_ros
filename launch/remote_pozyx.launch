@@ -1,6 +1,6 @@
 <launch>
 
-    <node name="remote_positioning" pkg="pozyx_ros" type="remote_positioning.py" output="screen">
+    <node name="remote_positioning" pkg="pozyx_ros" type="multitag_positioning.py" output="screen">
         <!-- POZYX_POS_ALG_UWB_ONLY = 0   POZYX_POS_ALG_TRACKING = 4-->
         <param name="algorithm" value="4" />
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import math
 import rospy
 import tf2_ros
@@ -10,11 +10,12 @@ from pypozyx.definitions.registers import *
 from pypozyx.tools.version_check import perform_latest_version_check
 from pypozyx.structures.device_information import DeviceDetails
 
+from std_msgs.msg import Header
 from geometry_msgs.msg import TransformStamped, Quaternion
 from sensor_msgs.msg import Imu
 
 
-def check_valid(self, current, last, allowed):
+def check_valid(current, last, allowed):
     if last is None:
         return 0
 
@@ -60,24 +61,19 @@ class MultitagPositioning(object):
         self.pub_position = {}
         self.last_valid = {}
         self.tag_max_change = {}
-        if self.tags == [None]:
-            self.tag_names[None] = tags[0]['name'] if tags[0]['name'] else 'tag'
-            self.pub_imu[None] = rospy.Publisher('pozyx/imu', Imu, queue_size=1)
-            self.pub_position[None] = rospy.Publisher('pozyx/measured', TransformStamped, queue_size=1)
-            self.last_valid[None] = None
-            self.tag_max_change[None] = max_change
-        else:
-            for tag in tags:
-                if tag['name']:
-                    name = tag['name']
-                else:
-                    name = '0x{0:04x}'.format(tag['id'] if tag['id'] is not None else 0)
-                self.tag_names[tag['id']] = name
-                self.pub_imu[tag['id']] = rospy.Publisher('{}/pozyx/imu'.format(name), Imu, queue_size=1)
-                self.pub_position[tag['id']] = rospy.Publisher('{}/pozyx/measured'.format(name),
-                                                               TransformStamped, queue_size=1)
-                self.last_valid[tag['id']] = None
-                self.tag_max_change[tag['id']] = max_change
+        for tag in tags:
+            if tag['name']:
+                name = tag['name']
+            elif tag['id'] is not None:
+                name = '0x{0:04x}'.format(tag['id'])
+            else:
+                name = ''
+            self.tag_names[tag['id']] = name
+            self.pub_imu[tag['id']] = rospy.Publisher('{}/pozyx/imu'.format(name), Imu, queue_size=1)
+            self.pub_position[tag['id']] = rospy.Publisher('{}/pozyx/measured'.format(name),
+                                                           TransformStamped, queue_size=1)
+            self.last_valid[tag['id']] = None
+            self.tag_max_change[tag['id']] = max_change
 
         # Initialize the TF broadcaster.
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
@@ -161,7 +157,7 @@ class MultitagPositioning(object):
                 pwc.transform.rotation = pypozyx.Quaternion()
                 self.pozyx.getQuaternion(pwc.transform.rotation)
                 # Package Pozyx's position.
-                pwc.child_frame_id = self.tag_names[tag] + '/pozyx'
+                pwc.child_frame_id = self.tag_names[tag] + '/tag'
                 pwc.transform.translation.x = position.x * 0.001
                 pwc.transform.translation.y = position.y * 0.001
                 pwc.transform.translation.z = position.z * 0.001
@@ -180,7 +176,7 @@ class MultitagPositioning(object):
                 # Prepare a ROS message for current IMU readings.
                 imu = Imu()
                 imu.header.stamp = rospy.get_rostime()
-                imu.header.frame_id = 'pozyx'
+                imu.header.frame_id = 'tag'
                 imu.orientation = pypozyx.Quaternion()
                 imu.orientation_covariance = [0, 0, 0, 0, 0, 0, 0, 0, 0]
                 imu.angular_velocity = pypozyx.AngularVelocity()
@@ -312,7 +308,7 @@ def main():
         for tag in rospy.get_param('/pozyx/tags'):
             tags.append({'id': int(tag['id'], 16) if tag['id'] != '' else None, 'name': tag['name']})
     else:
-        tags = [None]
+        tags = [{'id': None, 'name': ''}]
 
     # Create PyPozyx object and object for positioning.
     pozyx = pypozyx.PozyxSerial(serial_port)
