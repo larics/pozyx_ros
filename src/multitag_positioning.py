@@ -67,10 +67,10 @@ class MultitagPositioning(object):
             elif tag['id'] is not None:
                 name = '0x{0:04x}'.format(tag['id'])
             else:
-                name = ''
+                name = rospy.get_namespace().strip('/')
             self.tag_names[tag['id']] = name
-            self.pub_imu[tag['id']] = rospy.Publisher('{}/pozyx/imu'.format(name), Imu, queue_size=1)
-            self.pub_position[tag['id']] = rospy.Publisher('{}/pozyx/measured'.format(name),
+            self.pub_imu[tag['id']] = rospy.Publisher('/{}/pozyx/imu'.format(name), Imu, queue_size=1)
+            self.pub_position[tag['id']] = rospy.Publisher('/{}/pozyx/measured'.format(name),
                                                            TransformStamped, queue_size=1)
             self.last_valid[tag['id']] = None
             self.tag_max_change[tag['id']] = max_change
